@@ -1,0 +1,16 @@
+{
+  "name": "new-peer",
+  "version": "1.0.0",
+  "description": "",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.17.1",
+    "peer": "^0.6.1",
+    "socket.io": "^2.3.0"
+  },
+  "author": "",
+  "license": "ISC"
+}

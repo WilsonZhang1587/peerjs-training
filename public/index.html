@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+  </head>
+
+  <body>
+    <style>
+      #video-block {
+        min-width: 400px;
+        height: 300px;
+      }
+
+      #video-block video {
+        width: 400px;
+        height: 100%;
+        object-fit: cover;
+      }
+    </style>
+
+    <div id="video-block"></div>
+    <button id="share-screen">Share Screen</button>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="https://unpkg.com/peerjs@1.3.1/dist/peerjs.min.js"></script>
+    <script>
+      const videoBlock = document.getElementById("video-block");
+      const shareScreenBtn = document.getElementById("share-screen");
+
+      const socket = io("/");
+      const peer = new Peer(undefined, {
+        path: "/peerjs",
+        host: "/",
+        port: "443"
+      });
+      let myVideoStream;
+
+      peer.on("open", (id) => {
+        socket.emit("join-room", "room-01", id);
+      });
+      peer.on("call", (call) => {
+        call.answer(undefined);
+        call.on("stream", (userVideoStream) => {
+          console.log(userVideoStream);
+          addVideoStream(userVideoStream);
+        });
+      });
+
+      const addVideoStream = (stream) => {
+        const video = document.createElement("video");
+        video.classList.add("video");
+        video.muted = true;
+        video.srcObject = stream;
+        videoBlock.append(video);
+        video.addEventListener("loadedmetadata", () => {
+          console.log("play");
+          video.play();
+        });
+      };
+
+      const connectToNewUser = (userId, stream) => {
+        peer.call(userId, stream);
+      };
+
+      shareScreenBtn.onclick = () => {
+        navigator.mediaDevices
+          .getDisplayMedia({
+            video: false,
+            audio: false
+          })
+          .then((stream) => {
+            myVideoStream = stream;
+
+            socket.on("user-connected", (userId) => {
+              connectToNewUser(userId, stream);
+            });
+          });
+      };
+    </script>
+  </body>
+</html>
